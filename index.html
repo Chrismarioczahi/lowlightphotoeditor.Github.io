@@ -1,0 +1,507 @@
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>low light image processor</title>
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="styles.css" rel="stylesheet" />
+        <style>
+            @media screen and (max-width: 820px) {
+               .canvas-image {
+                 display: none;
+                 }
+                .showCanvas  .canvas-image {
+                 display: block;
+                 }
+             .showCanvas .imageSrcColumn 
+               {
+                  display: none;
+               }
+            }
+
+                 datalist {
+                    display: flex;
+                    justify-content: space-between;
+                    color: red;
+                    width: 100%;
+                    }
+
+                input {
+                width: 100%;
+                }
+                .cta {
+                border: none;
+                background: none;
+               }
+
+            .right{
+                float:right;
+                margin-right:10px;
+            }
+            .btn-selected
+            {
+                background-color: lightblue;
+            }
+            .btn-unselected
+            {
+                background-color: white;
+            }
+            svg
+            {
+                border-radius: 50px;
+                border: 1px solid rgba(0, 0, 0, 0.125);
+            }
+            .imageContainer
+            {
+              margin-top: 10px;
+              margin-bottom: 10px;
+              margin-left: 0px;
+              margin-right: 0px;
+            
+            }
+            .imageColumn
+            {
+              
+              border: 1px solid rgba(0, 0, 0, 0.125);
+              background-color: #fff;
+              min-height: 350px;
+            
+            }
+            img[alt]:after
+             {  
+                display: block;
+                position: relative;
+                top: -24px;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: #fff;
+                font-family: 'Helvetica';
+                font-weight: 300;
+                line-height: 2;  
+                text-align: center;
+                content: attr(alt);
+             }
+             .col-sm-6
+             {
+                width: 50% !important;
+
+             }
+            
+          
+        </style>
+        <script src="jquery.min.js"></script>
+    </head>
+    <body>
+        <!-- Responsive navbar-->
+        <nav class="navbar navbar-light bg-light static-top">
+            <div class="container">
+                <div class="col-sm-6"> 
+                <a class="navbar-brand" href="#!">LowLight Editor</a>
+                </div>
+                <div class="col-sm-6"> 
+                
+    <a class="btn " id="download"   download="myImage.jpg"  style="float:right;" href="#" style="float:right;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="30" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+          </svg>
+          <div>download</div>
+    </a>
+    <a class="btn" style="float:right;">  
+        <label for="file-input">
+          <svg xmlns="http://www.w3.org/2000/svg" width="60" height="30" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16">
+              <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+              <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+            </svg>
+       </label>
+       <div>upload</div>
+  
+    <input style="display:none" id="file-input" type="file"  accept="image/*">
+  </a>
+            </div>
+            </div>
+        </nav>
+        <!-- Page Content-->
+        <div class="container px-4 px-lg-5">
+            <!-- Heading Row-->
+            <div id="imageRow" class="row gx-4 gx-lg-5 imageContainer">
+                <div class="col-lg-6 imageColumn imageSrcColumn">
+                   
+                    <img id="imageSrc" class="img-fluid rounded mb-lg-0"  alt="Upload an image" />
+                </div>  
+                <div class="col-lg-6 imageColumn canvas-image">
+                    <div class="inputoutput">
+                        <div id="canavasCaption"class="caption">Output</div>
+                        <canvas id="canvasOutput" ></canvas>
+                      </div>
+                </div>    
+            </div>
+            <!-- Call to Action-->
+            <div class="row gx-4 gx-lg-12 ">
+
+                 <div class="col-sm-6">
+                    <button class="cta right"> 
+                    <svg id="magic" xmlns="http://www.w3.org/2000/svg" width="60" height="40" fill="currentColor" class="bi bi-magic" viewBox="0 0 16 16" >
+                        <path d="M9.5 2.672a.5.5 0 1 0 1 0V.843a.5.5 0 0 0-1 0v1.829Zm4.5.035A.5.5 0 0 0 13.293 2L12 3.293a.5.5 0 1 0 .707.707L14 2.707ZM7.293 4A.5.5 0 1 0 8 3.293L6.707 2A.5.5 0 0 0 6 2.707L7.293 4Zm-.621 2.5a.5.5 0 1 0 0-1H4.843a.5.5 0 1 0 0 1h1.829Zm8.485 0a.5.5 0 1 0 0-1h-1.829a.5.5 0 0 0 0 1h1.829ZM13.293 10A.5.5 0 1 0 14 9.293L12.707 8a.5.5 0 1 0-.707.707L13.293 10ZM9.5 11.157a.5.5 0 0 0 1 0V9.328a.5.5 0 0 0-1 0v1.829Zm1.854-5.097a.5.5 0 0 0 0-.706l-.708-.708a.5.5 0 0 0-.707 0L8.646 5.94a.5.5 0 0 0 0 .707l.708.708a.5.5 0 0 0 .707 0l1.293-1.293Zm-3 3a.5.5 0 0 0 0-.706l-.708-.708a.5.5 0 0 0-.707 0L.646 13.94a.5.5 0 0 0 0 .707l.708.708a.5.5 0 0 0 .707 0L8.354 9.06Z"/>
+                    </svg>
+                    <div>auto</div>                    </button>
+                 </div>
+                 <div class="col-sm-6">
+                    <button class="cta"> 
+                    <svg id="expose" xmlns="http://www.w3.org/2000/svg" width="60" height="40" fill="currentColor" class="bi bi-sliders" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3h9.05zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8h2.05zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1h9.05z"/>
+                      </svg>
+                      <div>adjust</div>  
+                      </button>
+                 </div>
+                 
+            </div>
+            <div class="row gx-4 gx-lg-5 align-items-center">
+                <div class="col-lg-12 ">
+                    <input type="range" list="tickmarks" id="exposeRange" min="0" max="250" step="25">
+                    <div style="width: 100%;">
+                    <i style="float: left; width:48.5%">Low</i><i style="float: left;">Mid</i><i style="float: right;">High</i>
+                    </div>
+                    <datalist id="tickmarks">
+                    <option value="0" label=""></option>
+                    <option value="25"></option>
+                    <option value="50"></option>
+                    <option value="75"></option>
+                    <option value="100"></option>
+                    <option value="125" label=""></option>
+                    <option value="150"></option>
+                    <option value="175"></option>
+                    <option value="200"></option>
+                    <option value="225"></option>
+                    <option value="250" label=""></option>
+                </datalist>
+                                        
+                </div>   
+            </div>
+            <div class="row gx-4 gx-lg-12 " style="margin-top:20px;">
+
+                <div class="col-sm-6"> 
+                    <button id="btnundo" class="btn btn-primary" style="float:left;margin-bottom: 10px;" disabled>Undo</button>
+                </div>
+                <div class="col-sm-6">
+                    <button id="btngenerate" class="btn btn-primary" style="float:right;margin-bottom: 10px;" href="#!">Generate</button>
+                </div>
+                
+           </div>
+           
+        </div>
+ 
+        <!-- Modal -->
+            <div class="modal fade" id="promptModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title" id="promptModalLabel"></h5>
+                <button id="promptModalClose" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+                <div id="promptModalText" class="modal-body">
+                </div>
+            </div>
+            </div>
+        </div>
+        <!-- Footer-->
+        <footer class="py-5 bg-dark">
+            <div class="container px-4 px-lg-5"><p class="m-0 text-center text-white">Copyright &copy; low light image processor</p></div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="bootstrap.bundle.min.js"></script>
+    
+        <script type="text/javascript">
+
+            let imgElement = document.getElementById('imageSrc');
+            let inputElement = document.getElementById('file-input');
+            inputElement.addEventListener('change', (e) => {
+              imgElement.src = URL.createObjectURL(e.target.files[0]);
+            }, false);
+
+            $(document).ready(function(){
+                var magic = $("#magic");
+                var expose =$("#expose");
+                var generate=$("#btngenerate");
+                var undo =$("#btnundo");
+                var canvasOutput = $("#canvasOutput");
+              
+                var download =$("#download");  
+                  
+                  download.click(function() {
+                  var mycanvas = document.getElementById("canvasOutput");
+                   var image = mycanvas.toDataURL("image/jpg"); 
+                   let downloadedImageName = "EnhancedImage"+Date.now()+"jpg";
+                  $(this).attr("download",downloadedImageName); 
+                   $(this).prop("href",image);               
+                  });  
+  
+                magic.click(function(){
+                 $("#exposeRange").prop("disabled",true);
+                 magic.removeClass("btn-unselected");
+                 magic.addClass("btn-selected");
+                 expose.removeClass("btn-selected");
+                 expose.addClass("btn-unselected");
+                });
+                 expose.click(function(){
+                 $("#exposeRange").prop("disabled",false);
+                 expose.addClass("btn-selected");
+                 expose.removeClass("btn-unselected");
+                 magic.addClass("btn-unselected");
+                 magic.removeClass("btn-selected");
+                 console.log($("#exposeRange").val());
+                });
+
+                undo.click(function(){
+
+                    
+                    $("#canavasCaption").show();
+    
+
+                    let canvas=document.getElementById("canvasOutput");
+                    let ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+                        
+                        //AddClass to Show output for desktop and Mobile
+                        $("#imageRow").removeClass("showCanvas")
+                        $('#promptModal').modal('hide');
+                        $('#promptModalLabel').text('');
+                        $('#promptModalText').html('');
+                        generate.prop('disabled',false);
+                        undo.prop('disabled',true);
+
+                });
+
+                $("#promptModalClose").click(function(){
+                    $('#promptModal').modal('hide');
+                    $('#promptModalText').html('');
+                    $('#promptModalLabel').text('');
+                });
+
+                  //set magic to default;
+                  magic.click();
+
+                  //generate clicked
+                  generate.click(function(){
+                    let isImgSRC = imgElement.src;
+                    if(isImgSRC!="" && typeof isImgSRC  !== "undefined")
+                    {
+                    let mat = cv.imread(imgElement);
+                    let dst = new cv.Mat();
+                        
+                       //Take kValue from range
+                       let kValue = $("#exposeRange").val();
+
+                         //However if range is Disabled use calcuate the kValue using cumulative histogram
+                         // kValue determines how much it needs to be improved 
+                        if( $("#exposeRange").prop("disabled") )
+                        {
+                          cv.cvtColor(mat, dst, cv.COLOR_RGBA2GRAY, 0);
+                          let detvalue = dethistogram(dst);
+                          console.log(detvalue);
+                        
+                          kValue = 255-(detvalue*2);
+                           
+                          //if kValue is negative, image is bright so dont do any processing
+                          if(kValue < 0)
+                          {
+                            $('#promptModal').modal('show');
+                            $('#promptModalLabel').text('Warning');
+                            $('#promptModalText').html('Image is bright. Use slider to edit the quality');
+                            return;
+                          }
+                        }
+                                
+                        let lmat1 = cv.Mat.ones(mat.rows, mat.cols, mat.type());
+                        
+                            lmat1= tmapp(mat,kValue);
+                        
+                        let dst2 = new cv.Mat();
+                        let ksize = new cv.Size(3, 3);
+                        // You can try more different parameters
+                        cv.GaussianBlur(lmat1, dst2, ksize, 0, 0, cv.BORDER_DEFAULT);
+                        
+                        //Hide Caption:
+                        $("#canavasCaption").hide();
+                        cv.imshow('canvasOutput', dst2);
+                        
+                        //AddClass to Show output for desktop and Mobile
+                        $("#imageRow").addClass("showCanvas")
+                        $('#promptModal').modal('show');
+                        $('#promptModalLabel').text('Success');
+                        $('#promptModalText').html('Completed');
+                        generate.prop('disabled',true);
+                        undo.prop('disabled',false);
+
+                        mat.delete();
+                        lmat1.delete();
+                        dst.delete();
+                    }
+                    else
+                    {
+                        $('#promptModal').modal('show');
+                        $('#promptModalLabel').text('Warning');
+                        $('#promptModalText').html('Please upload an image');
+                    }
+                  });
+            });
+        
+            function onOpenCvReady() {
+              //document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+            }
+            
+            function tmapp (nmat, vv)
+            {
+                
+                let r=nmat.rows;
+                let c=nmat.cols;
+                
+                let lmat = cv.Mat.ones(nmat.rows, nmat.cols, nmat.type());
+                
+                var lvo= Math.log(vv+1);
+                var co=vv/lvo;
+                
+                //  cout<<endl<<"this is co1="<<co; 
+                
+                //cout<<endl<<"this is c="<<co;
+                
+                // equalizeHist(channels[0], channels[0]);
+                
+                var f0;
+                var f1;
+                var f2;
+                var f3;
+
+                for (var k=0; k<r; k++) {
+                    
+                    for (var j=0; j<c; j++){
+                        
+                        // color image
+                        
+                        let d0=co;
+                        let pixel = nmat.ucharPtr(k, j);
+                        let a0= Math.abs(pixel[0]);
+                        let a1= Math.abs(pixel[1]);
+                        let a2= Math.abs(pixel[2]);
+                        let a3= Math.abs(pixel[3]);
+                        
+                        if (a0<(vv+1)){
+                            let b0=Math.log(1+a0);
+                            let e0=d0*b0;
+                            f0=e0;
+                        }
+                        else{
+                            f0=a0;
+                        }
+                        
+                        
+                        if (a1<(vv+1)){
+                            let b1=Math.log(1+a1);
+                            let e1=d0*b1;
+                            f1=e1;
+                        }
+                        else{
+                            f1=a1;
+                        }
+                        
+                        
+                        if (a2<(vv+1)){
+                            let b2=Math.log(1+a2);
+                            let e2=d0*b2;
+                            f2=e2;
+                        }
+                        else{
+                            f2=a2;
+                        }
+            
+                        if (a3<(vv+1)){
+                            let b3=Math.log(1+a3);
+                            let e3=d0*b3;
+                            f3=e3;
+                        }
+                        else{
+                            f3=a3;
+                        }
+            
+                        lmat.ucharPtr(k, j)[0]=f0;
+                        lmat.ucharPtr(k, j)[1]=f1;
+                        lmat.ucharPtr(k, j)[2]=f2;
+                        lmat.ucharPtr(k, j)[3]=f3;
+                    }
+                    
+                }
+                return lmat;
+            }
+            
+            
+            function dethistogram(src)
+            {
+                console.log('image width: ' + src.cols + '\n' +
+                        'image height: ' + src.rows + '\n' +
+                        'image size: ' + src.size().width + '*' + src.size().height + '\n' +
+                        'image depth: ' + src.depth() + '\n' +
+                        'image channels ' + src.channels() + '\n' +
+                        'image type: ' + src.type() + '\n');
+                        
+                        
+                var detph;
+                
+                var histog= new Array(256)
+                
+                
+                // initialize all intensity values to 0
+                for(var i = 0; i < 256; i++)
+                {
+                    histog[i] = 0;
+                }
+                
+                // calculate the no of pixels for each intensity values
+                for(var y = 0; y < src.rows; y++){
+                    for(var x = 0; x < src.cols; x++){
+                        // histogram[(int)imggray.at<uchar>(y,x)]++;
+                            
+                        histog[src.ucharAt(y, x * src.channels())]++;
+                    }
+                }
+               
+                var cumhistogram = new Array(256);
+                cumhistogram[0] = histog[0];
+                
+                for(var i = 1; i < 256; i++)
+                {
+                    cumhistogram[i] = histog[i] + cumhistogram[i-1];
+                }
+                
+                
+                var cumhalf=(cumhistogram[255]/100)*70;
+                var detguassval=0;
+                for(var i = 0; i < 256; i++)
+                {
+                    
+                    if(cumhistogram[i]>cumhalf)
+                    {
+                        detguassval=i;
+                        break;
+                    }
+                }
+                
+                detph=detguassval;
+                
+                return detph;
+            
+            }
+            </script>
+     
+        <script async="" src="opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+    
+    </body>
+</html>
